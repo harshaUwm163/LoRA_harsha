@@ -54,6 +54,8 @@ class Linear(nn.Linear, TFFLayer):
         TFFLayer.__init__(self, k=k, l=l, kmax=kmax, n=out_features, tff_dropout=tff_dropout,
                            merge_weights=merge_weights)
 
+        print(f'######################### NOTE #######################################33')
+        print(f'self.kmax = {self.kmax}, self.k = {self.k}')
         self.fan_in_fan_out = fan_in_fan_out
         # Actual trainable parameters
         if l < out_features:
