@@ -191,6 +191,10 @@ class ModelArguments:
         default=None,
         metadata={"help": "max number of subspaces you wanna consider"},
     )
+    tff_ssss: Optional[int] = field(
+        default=None,
+        metadata={"help": "seed for sampling subspaces :)"},
+    )
     tff_path: Optional[str] = field(
         default=None,
         metadata={"help": "The file path of TFF parameters."},
@@ -360,6 +364,7 @@ def main():
         tff_k =model_args.tff_k,
         tff_l =model_args.tff_l,
         tff_kmax = model_args.tff_kmax,
+        tff_ssss = model_args.tff_ssss,
         apply_adapter=model_args.apply_adapter,
         adapter_type=model_args.adapter_type,
         adapter_size=model_args.adapter_size,
