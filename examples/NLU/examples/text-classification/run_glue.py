@@ -420,9 +420,6 @@ def main():
             else:
                 param.requires_grad = True
 
-    import pdb
-    pdb.set_trace()
-
     # Preprocessing the datasets
     if data_args.task_name is not None:
         sentence1_key, sentence2_key = task_to_keys[data_args.task_name]
