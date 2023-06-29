@@ -29,6 +29,7 @@ from .file_utils import (
 )
 from .trainer_utils import EvaluationStrategy, IntervalStrategy, SchedulerType, ShardedDDPOption
 from .utils import logging
+import pdb
 
 
 if is_torch_available():
@@ -681,6 +682,7 @@ class TrainingArguments:
             device = torch.device("cuda", self.local_rank)
             self._n_gpu = 1
 
+        print(device)
         if device.type == "cuda":
             torch.cuda.set_device(device)
 

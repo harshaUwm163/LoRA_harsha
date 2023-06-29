@@ -15,8 +15,12 @@
 # limitations under the License.
 """PyTorch RoBERTa model. """
 
+import sys
+# sys.path.append('../../../../../../fusionFrames')
+sys.path.append('../../fusionFrames')
 from torch.nn.modules.container import ModuleDict
-import loralib as lora
+# import loralib as lora
+import tff_layers as tff
 
 import math
 
@@ -162,15 +166,15 @@ class RobertaSelfAttention(nn.Module):
         self.attention_head_size = int(config.hidden_size / config.num_attention_heads)
         self.all_head_size = self.num_attention_heads * self.attention_head_size
 
-        if config.apply_lora:
-            self.query = lora.Linear(config.hidden_size, self.all_head_size, config.lora_r, lora_alpha=config.lora_alpha)
+        if config.apply_tff:
+            self.query = tff.Linear(config.hidden_size, self.all_head_size, config.tff_k, l=config.tff_l)
         else:
             self.query = nn.Linear(config.hidden_size, self.all_head_size)
         
         self.key = nn.Linear(config.hidden_size, self.all_head_size)
 
-        if config.apply_lora:
-            self.value = lora.Linear(config.hidden_size, self.all_head_size, config.lora_r, lora_alpha=config.lora_alpha)
+        if config.apply_tff:
+            self.value = tff.Linear(config.hidden_size, self.all_head_size, config.tff_k, l=config.tff_l)
         else:
             self.value = nn.Linear(config.hidden_size, self.all_head_size)
 

@@ -147,9 +147,9 @@ class BertConfig(PretrainedConfig):
         gradient_checkpointing=False,
         position_embedding_type="absolute",
         use_cache=True,
-        apply_lora=False,
-        lora_alpha=None,
-        lora_r=None,
+        apply_tff=False,
+        tff_k=None,
+        tff_l=None,
         apply_adapter=False,
         adapter_type=None,
         adapter_size=None,
@@ -172,9 +172,9 @@ class BertConfig(PretrainedConfig):
         self.gradient_checkpointing = gradient_checkpointing
         self.position_embedding_type = position_embedding_type
         self.use_cache = use_cache
-        self.apply_lora = apply_lora
-        self.lora_alpha = lora_alpha
-        self.lora_r = lora_r
+        self.apply_tff = apply_tff
+        self.tff_k = tff_k
+        self.tff_l = tff_l
         self.apply_adapter = apply_adapter
         self.adapter_type = adapter_type
         self.adapter_size = adapter_size

@@ -44,6 +44,8 @@ from transformers import (
 from transformers.trainer_utils import get_last_checkpoint, is_main_process
 from transformers.utils import check_min_version
 
+import pdb
+
 
 # Will error if the minimal version of Transformers is not installed. Remove at your own risks.
 check_min_version("4.4.0")
@@ -173,21 +175,21 @@ class ModelArguments:
             "with private models)."
         },
     )
-    apply_lora: Optional[bool] = field(
+    apply_tff: Optional[bool] = field(
         default=False,
-        metadata={"help": "Whether to apply LoRA or not."},
+        metadata={"help": "Whether to apply TFFs or not."},
     )
-    lora_alpha: Optional[int] = field(
+    tff_k: Optional[int] = field(
         default=None,
-        metadata={"help": "LoRA alpha"},
+        metadata={"help": "number of subspaces"},
     )
-    lora_r: Optional[int] = field(
+    tff_l: Optional[int] = field(
         default=None,
-        metadata={"help": "LoRA r"},
+        metadata={"help": "dimension of the subspaces of the TFFs"},
     )
-    lora_path: Optional[str] = field(
+    tff_path: Optional[str] = field(
         default=None,
-        metadata={"help": "The file path of LoRA parameters."},
+        metadata={"help": "The file path of TFF parameters."},
     )
     apply_adapter: Optional[bool] = field(
         default=False,
@@ -350,9 +352,9 @@ def main():
         revision=model_args.model_revision,
         use_auth_token=True if model_args.use_auth_token else None,
         cls_dropout=training_args.cls_dropout,
-        apply_lora=model_args.apply_lora,
-        lora_alpha=model_args.lora_alpha,
-        lora_r=model_args.lora_r,
+        apply_tff=model_args.apply_tff,
+        tff_k =model_args.tff_k,
+        tff_l =model_args.tff_l,
         apply_adapter=model_args.apply_adapter,
         adapter_type=model_args.adapter_type,
         adapter_size=model_args.adapter_size,
@@ -376,13 +378,13 @@ def main():
     )
 
     trainable_params = []
-    if model_args.apply_lora:
-        if model_args.lora_path is not None:
-            lora_state_dict = torch.load(model_args.lora_path)
-            logger.info(f"Apply LoRA state dict from {model_args.lora_path}.")
-            logger.info(lora_state_dict.keys())
-            model.load_state_dict(lora_state_dict, strict=False)
-        trainable_params.append('lora')
+    if model_args.apply_tff:
+        if model_args.tff_path is not None:
+            tff_state_dict = torch.load(model_args.tff_path)
+            logger.info(f"Apply TFF state dict from {model_args.tff_path}.")
+            logger.info(tff_state_dict.keys())
+            model.load_state_dict(tff_state_dict, strict=False)
+        trainable_params.append('tff')
 
     if model_args.apply_adapter:
         if model_args.adapter_path is not None:
@@ -411,11 +413,15 @@ def main():
             if name.startswith('deberta') or name.startswith('roberta'):
                 param.requires_grad = False
                 for trainable_param in trainable_params:
-                    if trainable_param in name:
+                    if trainable_param in name and 'frame' not in name: # do not update the projection matrices
                         param.requires_grad = True
+                        print(name, param.requires_grad)
                         break
             else:
                 param.requires_grad = True
+
+    import pdb
+    pdb.set_trace()
 
     # Preprocessing the datasets
     if data_args.task_name is not None:

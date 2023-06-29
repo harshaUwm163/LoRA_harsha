@@ -133,3 +133,6 @@ post/
 *.nupkg
 /Packages
 
+# experiment files
+examples/NLU/sst2/
+examples/NLU/mnli/
