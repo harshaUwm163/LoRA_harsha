@@ -16,6 +16,7 @@ class TFFLayer():
         k: int, 
         l: int, 
         kmax: int,
+        ssss: int,
         n: int, 
         tff_dropout: float,
         merge_weights: bool,
@@ -27,6 +28,10 @@ class TFFLayer():
             self.kmax = k
         else:
             self.kmax = kmax
+        if ssss is None:
+            self.ssss = 123548997
+        else:
+            self.ssss = ssss
         # Optional dropout
         if tff_dropout > 0.:
             self.tff_dropout = nn.Dropout(p=tff_dropout)
@@ -45,21 +50,24 @@ class Linear(nn.Linear, TFFLayer):
         k: int, 
         l: int,  # for now l is an even number only
         kmax: int = None,
+        ssss: int = None,
         tff_dropout: float = 0.,
         fan_in_fan_out: bool = False, # Set this to True if the layer to replace stores weight like (fan_in, fan_out)
         merge_weights: bool = True,
         **kwargs
     ):
         nn.Linear.__init__(self, in_features, out_features, **kwargs)
-        TFFLayer.__init__(self, k=k, l=l, kmax=kmax, n=out_features, tff_dropout=tff_dropout,
+        TFFLayer.__init__(self, k=k, l=l, kmax=kmax, ssss=ssss, n=out_features, tff_dropout=tff_dropout,
                            merge_weights=merge_weights)
 
         print(f'######################### NOTE #######################################33')
-        print(f'self.kmax = {self.kmax}, self.k = {self.k}')
+        print(f'self.kmax = {self.kmax}, self.k = {self.k}, self.ssss = {self.ssss}')
         self.fan_in_fan_out = fan_in_fan_out
         # Actual trainable parameters
         if l < out_features:
-            tffs = construct_real_tff(self.k, self.l // 2, out_features // 2).permute(0,2,1)[:self.kmax,...]
+            generator = torch.Generator().manual_seed(self.ssss)
+            ss_indices = torch.randperm(self.k, generator=generator)[:self.kmax]
+            tffs = construct_real_tff(self.k, self.l // 2, out_features // 2).permute(0,2,1)[ss_indices,...]
             self.tff_frames = nn.Parameter(torch.cat(tffs.unbind(), dim=1), requires_grad=False)
             self.tff_Ws = nn.Parameter(torch.empty((self.kmax * self.l, in_features)))
 
