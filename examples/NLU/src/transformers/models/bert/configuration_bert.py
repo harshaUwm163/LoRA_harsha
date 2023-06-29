@@ -150,6 +150,7 @@ class BertConfig(PretrainedConfig):
         apply_tff=False,
         tff_k=None,
         tff_l=None,
+        tff_kmax=None,
         apply_adapter=False,
         adapter_type=None,
         adapter_size=None,
@@ -175,6 +176,7 @@ class BertConfig(PretrainedConfig):
         self.apply_tff = apply_tff
         self.tff_k = tff_k
         self.tff_l = tff_l
+        self.tff_kmax = tff_kmax
         self.apply_adapter = apply_adapter
         self.adapter_type = adapter_type
         self.adapter_size = adapter_size

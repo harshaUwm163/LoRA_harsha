@@ -167,14 +167,14 @@ class RobertaSelfAttention(nn.Module):
         self.all_head_size = self.num_attention_heads * self.attention_head_size
 
         if config.apply_tff:
-            self.query = tff.Linear(config.hidden_size, self.all_head_size, config.tff_k, l=config.tff_l)
+            self.query = tff.Linear(config.hidden_size, self.all_head_size, config.tff_k, l=config.tff_l, kmax=config.tff_kmax)
         else:
             self.query = nn.Linear(config.hidden_size, self.all_head_size)
         
         self.key = nn.Linear(config.hidden_size, self.all_head_size)
 
         if config.apply_tff:
-            self.value = tff.Linear(config.hidden_size, self.all_head_size, config.tff_k, l=config.tff_l)
+            self.value = tff.Linear(config.hidden_size, self.all_head_size, config.tff_k, l=config.tff_l, kmax=config.tff_kmax)
         else:
             self.value = nn.Linear(config.hidden_size, self.all_head_size)
 

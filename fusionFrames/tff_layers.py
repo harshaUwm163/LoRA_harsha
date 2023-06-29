@@ -15,6 +15,7 @@ class TFFLayer():
         self, 
         k: int, 
         l: int, 
+        kmax: int,
         n: int, 
         tff_dropout: float,
         merge_weights: bool,
@@ -22,6 +23,10 @@ class TFFLayer():
         self.k = k
         self.l = l
         self.n = n
+        if kmax is None:
+            self.kmax = k
+        else:
+            self.kmax = kmax
         # Optional dropout
         if tff_dropout > 0.:
             self.tff_dropout = nn.Dropout(p=tff_dropout)
@@ -39,28 +44,29 @@ class Linear(nn.Linear, TFFLayer):
         out_features: int, # for now outfeatures is also even
         k: int, 
         l: int,  # for now l is an even number only
+        kmax: int = None,
         tff_dropout: float = 0.,
         fan_in_fan_out: bool = False, # Set this to True if the layer to replace stores weight like (fan_in, fan_out)
         merge_weights: bool = True,
         **kwargs
     ):
         nn.Linear.__init__(self, in_features, out_features, **kwargs)
-        TFFLayer.__init__(self, k=k, l=l, n=out_features, tff_dropout=tff_dropout,
+        TFFLayer.__init__(self, k=k, l=l, kmax=kmax, n=out_features, tff_dropout=tff_dropout,
                            merge_weights=merge_weights)
 
         self.fan_in_fan_out = fan_in_fan_out
         # Actual trainable parameters
         if l < out_features:
-            tffs = construct_real_tff(self.k, self.l // 2, out_features // 2).permute(0,2,1)
+            tffs = construct_real_tff(self.k, self.l // 2, out_features // 2).permute(0,2,1)[:self.kmax,...]
             self.tff_frames = nn.Parameter(torch.cat(tffs.unbind(), dim=1), requires_grad=False)
-            self.tff_Ws = nn.Parameter(torch.empty((self.k * self.l, in_features)))
+            self.tff_Ws = nn.Parameter(torch.empty((self.kmax * self.l, in_features)))
 
             # Freezing the pre-trained weight matrix
             self.weight.requires_grad = False
         self.reset_parameters()
         if fan_in_fan_out:
             self.weight.data = self.weight.data.transpose(0, 1)
-
+        
     def reset_parameters(self):
         nn.Linear.reset_parameters(self)
         if hasattr(self, 'tff_Ws'):
