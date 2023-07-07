@@ -854,6 +854,10 @@ class Trainer:
                 "instead.",
                 FutureWarning,
             )
+        if "wandb" in kwargs:
+            wandb = kwargs.pop("wandb")
+        else:
+            wandb= None
         if len(kwargs) > 0:
             raise TypeError(f"train() received got unexpected keyword arguments: {', '.join(list(kwargs.keys()))}.")
         # This might change the seed so needs to run first.
@@ -1046,6 +1050,7 @@ class Trainer:
             )
             self.control = self.callback_handler.on_epoch_begin(self.args, self.state, self.control)
 
+            epoch_loss = 0.
             for step, inputs in enumerate(epoch_iterator):
 
                 # Skip past any already trained steps if resuming training
@@ -1063,9 +1068,15 @@ class Trainer:
                 ):
                     # Avoid unnecessary DDP synchronization since there will be no backward pass on this example.
                     with model.no_sync():
-                        tr_loss += self.training_step(model, inputs)
+                        # tr_loss += self.training_step(model, inputs)
+                        curr_loss = self.training_step(model, inputs)
+                        tr_loss += curr_loss
+                        epoch_loss += curr_loss
                 else:
-                    tr_loss += self.training_step(model, inputs)
+                    # tr_loss += self.training_step(model, inputs)
+                    curr_loss = self.training_step(model, inputs)
+                    tr_loss += curr_loss
+                    epoch_loss += curr_loss
                 self._total_flos += float(self.floating_point_ops(inputs))
 
                 # Optimizer step for deepspeed must be called on every step regardless of the value of gradient_accumulation_steps
@@ -1122,6 +1133,9 @@ class Trainer:
 
                 if self.control.should_epoch_stop or self.control.should_training_stop:
                     break
+
+            if wandb is not None:
+                wandb.log({'epoch': epoch, 'loss':epoch_loss})
 
             self.control = self.callback_handler.on_epoch_end(self.args, self.state, self.control)
             self._maybe_log_save_evaluate(tr_loss, model, trial, epoch)
