@@ -65,6 +65,7 @@ class Linear(nn.Linear, TFFLayer):
         if l < out_features:
             generator = torch.Generator().manual_seed(self.ssss)
             ss_indices = torch.randperm(self.k, generator=generator)[:self.kmax]
+            # ss_indices = torch.arange(self.kmax)
             tffs = construct_real_tff(self.k, self.l // 2, out_features // 2).permute(0,2,1)[ss_indices,...]
             self.tff_frames = nn.Parameter(torch.cat(tffs.unbind(), dim=1), requires_grad=False)
             self.tff_Ws = nn.Parameter(torch.empty((self.kmax * self.l, in_features)))
