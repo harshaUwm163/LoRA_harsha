@@ -60,8 +60,6 @@ class Linear(nn.Linear, TFFLayer):
         TFFLayer.__init__(self, k=k, l=l, kmax=kmax, ssss=ssss, n=out_features, tff_dropout=tff_dropout,
                            merge_weights=merge_weights)
 
-        print(f'######################### NOTE #######################################33')
-        print(f'self.kmax = {self.kmax}, self.k = {self.k}, self.ssss = {self.ssss}')
         self.fan_in_fan_out = fan_in_fan_out
         # Actual trainable parameters
         if l < out_features:
@@ -73,6 +71,9 @@ class Linear(nn.Linear, TFFLayer):
 
             # Freezing the pre-trained weight matrix
             self.weight.requires_grad = False
+
+            print(f'######################### NOTE #######################################33')
+            print(f'self.kmax = {self.kmax}, self.k = {self.k}, self.l = {self.l}, self.ssss = {self.ssss}, ss_indicies = {ss_indices}')
         self.reset_parameters()
         if fan_in_fan_out:
             self.weight.data = self.weight.data.transpose(0, 1)

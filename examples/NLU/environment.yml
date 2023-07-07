@@ -1,4 +1,4 @@
-name: NLU
+# name: NLU
 channels:
   - pytorch
   - nvidia
@@ -104,4 +104,4 @@ dependencies:
     - wrapt==1.12.1
     - azureml-core==1.32.0
     - loralib==0.1.1
-prefix: /opt/conda/envs/transformers
+# prefix: /opt/conda/envs/transformers
