@@ -39,7 +39,7 @@ def construct_tff_from_eigvals(M,m,N,eigVals):
 
 def construct_sparse_tffs(M,m,N):
     # the checks are done while constructing the Tffs. 
-    eigVals = torch.tensor([m*M/N] * M)
+    eigVals = torch.tensor([m*M/N] * N)
     return construct_tff_from_eigvals(M,m,N, eigVals)
 
 if __name__ == "__main__":
