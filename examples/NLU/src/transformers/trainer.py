@@ -1135,6 +1135,7 @@ class Trainer:
                     break
 
             if wandb is not None:
+                epoch_loss = epoch_loss/step
                 wandb.log({'epoch': epoch, 'loss':epoch_loss})
 
             self.control = self.callback_handler.on_epoch_end(self.args, self.state, self.control)

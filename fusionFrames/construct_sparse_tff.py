@@ -24,7 +24,7 @@ def construct_tff_from_eigvals(M,m,N,eigVals):
                 gen_basis.append( math.sqrt(eigVals[j]/2)*canonical_basis[j] + math.sqrt(1 - eigVals[j]/2) * canonical_basis[(j+1) % N] )
                 gen_basis.append( math.sqrt(eigVals[j]/2)*canonical_basis[j] - math.sqrt(1 - eigVals[j]/2) * canonical_basis[(j+1) % N] )
                 k = k+2
-                eigVals[j+1] = eigVals[j+1] - (2 - eigVals)
+                eigVals[(j+1) % N] = eigVals[(j+1) % N] - (2 - eigVals[j])
                 eigVals[j] = 0
             else:
                 gen_basis.append(canonical_basis[j])

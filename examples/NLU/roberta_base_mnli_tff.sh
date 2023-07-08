@@ -1,7 +1,7 @@
 export num_gpus=8
 export CUBLAS_WORKSPACE_CONFIG=":16:8" # https://docs.nvidia.com/cuda/cublas/index.html#cublasApi_reproducibility
 export PYTHONHASHSEED=0
-export output_dir="/nobackup/harsha/LoRA/stff_k384_l4_kmax4_sed143907"
+export output_dir="/nobackup/harsha/LoRA/stff_k384_l4_kmax4_sed92510"
 python -m torch.distributed.launch --nproc_per_node=$num_gpus \
 examples/text-classification/run_glue.py \
 --model_name_or_path roberta-base \
@@ -23,6 +23,6 @@ examples/text-classification/run_glue.py \
 --tff_k 384 \
 --tff_l 4 \
 --tff_kmax 4 \
---tff_ssss 143907 \
+--tff_ssss 92510 \
 --seed 0 \
 --weight_decay 0.1
