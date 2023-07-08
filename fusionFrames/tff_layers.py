@@ -5,7 +5,8 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from construct_tff import construct_real_tff
+# from construct_tff import construct_real_tff
+from construct_sparse_tff import construct_sparse_tffs
 
 import math
 from typing import Optional, List
@@ -63,10 +64,12 @@ class Linear(nn.Linear, TFFLayer):
         self.fan_in_fan_out = fan_in_fan_out
         # Actual trainable parameters
         if l < out_features:
+            # eigVal gives the number of copies of the basis
+            eigVal = self.k * self.l // out_features
             generator = torch.Generator().manual_seed(self.ssss)
-            ss_indices = torch.randperm(self.k, generator=generator)[:self.kmax]
-            # ss_indices = torch.arange(self.kmax)
-            tffs = construct_real_tff(self.k, self.l // 2, out_features // 2).permute(0,2,1)[ss_indices,...]
+            ss_indices = torch.randperm(self.k// eigVal, generator=generator)[:self.kmax]
+            # tffs = construct_real_tff(self.k, self.l // 2, out_features // 2).permute(0,2,1)[ss_indices,...]
+            tffs = construct_sparse_tffs(self.k, self.l, out_features)[::eigVal,...].permute(0,2,1)[ss_indices,...]
             self.tff_frames = nn.Parameter(torch.cat(tffs.unbind(), dim=1), requires_grad=False)
             self.tff_Ws = nn.Parameter(torch.empty((self.kmax * self.l, in_features)))
 

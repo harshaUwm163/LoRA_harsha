@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+
 # coding=utf-8
 # Copyright 2020 The HuggingFace Inc. team. All rights reserved.
 #
@@ -45,6 +45,7 @@ from transformers.trainer_utils import get_last_checkpoint, is_main_process
 from transformers.utils import check_min_version
 
 import pdb
+import wandb
 
 
 # Will error if the minimal version of Transformers is not installed. Remove at your own risks.
@@ -242,8 +243,28 @@ def main():
     else:
         model_args, data_args, training_args = parser.parse_args_into_dataclasses()
 
+    # setup logging
+    if not os.path.exists(training_args.output_dir):
+        os.makedirs(training_args.output_dir, exist_ok=True)
+    log_path = os.path.join(training_args.output_dir, 'logfile.log')
+    info_file_handler = logging.FileHandler(log_path)
+    console_handler = logging.StreamHandler()
+    logger.addHandler(info_file_handler)
+    logger.addHandler(console_handler)
+
+    # init wandb
+    if is_main_process(training_args.local_rank):
+        exp_name = training_args.output_dir.split('/')[-2]
+        run = wandb.init(
+                # Set the project where this run will be logged
+                project="LoRA_harsha",
+                # Track hyperparameters and run metadata
+                name= exp_name,
+            )
+
     torch.use_deterministic_algorithms(training_args.use_deterministic_algorithms)
     logger.info("use_deterministic_algorithms: " + str(torch.are_deterministic_algorithms_enabled()))
+
 
     # Detecting last checkpoint.
     last_checkpoint = None
@@ -282,6 +303,7 @@ def main():
 
     # Set seed before initializing model.
     set_seed(training_args.seed)
+
 
     # Get the datasets: you can either provide your own CSV/JSON training and evaluation files (see below)
     # or specify a GLUE benchmark task (the dataset will be downloaded automatically from the datasets Hub).
@@ -568,7 +590,11 @@ def main():
             if AutoConfig.from_pretrained(model_args.model_name_or_path).num_labels == num_labels:
                 checkpoint = model_args.model_name_or_path
 
-        train_result = trainer.train(resume_from_checkpoint=checkpoint)
+        if is_main_process(training_args.local_rank):
+            train_result = trainer.train(resume_from_checkpoint=checkpoint, wandb=wandb)
+        else:
+            train_result = trainer.train(resume_from_checkpoint=checkpoint)
+
         metrics = train_result.metrics
         max_train_samples = (
             data_args.max_train_samples if data_args.max_train_samples is not None else len(train_dataset)
@@ -594,6 +620,9 @@ def main():
 
         for eval_dataset, task in zip(eval_datasets, tasks):
             metrics = trainer.evaluate(eval_dataset=eval_dataset)
+
+            if is_main_process(training_args.local_rank):
+                wandb.log({'eval_loss': metrics['eval_loss'], 'eval_accuracy': metrics['eval_accuracy']})
 
             max_val_samples = data_args.max_val_samples if data_args.max_val_samples is not None else len(eval_dataset)
             metrics["eval_samples"] = min(max_val_samples, len(eval_dataset))
